@@ -16,6 +16,8 @@ const storage = multer.diskStorage({
 // File upload middleware
 const upload = multer({ storage: storage }).single("image");
 
+
+
 // Create a new product
 exports.createProduct = async (req, res) => {
     upload(req, res, async (err) => {
