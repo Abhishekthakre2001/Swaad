@@ -1,4 +1,4 @@
-const ProductCategory = require("../models/productCategory");
+const ProductCategory = require("../models/ProductCategory");
 const multer = require("multer");
 const path = require("path");
 
