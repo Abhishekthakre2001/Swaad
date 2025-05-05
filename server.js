@@ -6,22 +6,40 @@ const productRoutes = require("./routes/productRoutes");
 const offerRoutes = require("./routes/offerRoutes");
 const Productcategory = require("./routes/productcategory");
 const orderRoutes = require("./routes/orderRoutes");
-const Login = require('./routes/Login')
+const Login = require('./routes/Login');
 const path = require("path");
-const cors = require("cors"); 
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require("cors");
 
 dotenv.config();
-const app = express();
-app.use(bodyParser.json());
+
+const app = express(); // ✅ only ONE express instance
+
+const server = http.createServer(app); // ✅ create HTTP server
+
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Replace with frontend URL in production
+  }
+});
+
+// ✅ Attach Socket.IO to app so it can be accessed in routes
+app.set('io', io);
+
+// Middlewares
 app.use(cors());
+app.use(bodyParser.json());
 
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => console.log("MongoDB connected"))
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log("MongoDB connected"))
+.catch(err => console.log(err));
 
-  .catch(err => console.log(err));
-
+// Routes
 app.use("/login", Login);
 app.use("/api", productRoutes);
 app.use("/offer", offerRoutes);
@@ -29,5 +47,8 @@ app.use("/productcategory", Productcategory);
 app.use("/order", orderRoutes);
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start server
+const PORT = process.env.PORT || 4021;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

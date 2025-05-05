@@ -1,10 +1,10 @@
 const Order = require("../models/Order");
 
-// Place a new order
+// ✅ Place a new order
 exports.placeOrder = async (req, res) => {
-    console.log("request",req.body)
+    console.log("request", req.body);
     try {
-        const { tableNumber, items, totalBill , email } = req.body;
+        const { tableNumber, items, totalBill, email } = req.body;
 
         if (!tableNumber || !items || items.length === 0 || !totalBill) {
             return res.status(400).json({ success: false, message: "Invalid order data" });
@@ -15,35 +15,39 @@ exports.placeOrder = async (req, res) => {
             items,
             totalBill,
             status: "Undelivered",
-            email 
+            email
         });
 
         await newOrder.save();
+
+        // ✅ Emit socket event after saving
+        const io = req.app.get('io');
+        io.emit('newOrder', newOrder);
+
         res.status(201).json({ success: true, data: newOrder });
     } catch (error) {
-        console.log("error",error)
+        console.log("error", error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// Get all orders
+// ✅ Get all orders
 exports.getAllOrders = async (req, res) => {
     try {
-        const { email } = req.query; // ✅ get email from query
+        const { email } = req.query;
 
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
         }
 
-        const orders = await Order.find({ email }); // ✅ filter orders by email
+        const orders = await Order.find({ email });
         res.status(200).json({ success: true, data: orders });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-
-// Update order status
+// ✅ Update order status
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
